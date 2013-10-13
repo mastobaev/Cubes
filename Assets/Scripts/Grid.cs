@@ -70,7 +70,7 @@ public class Grid : MonoBehaviour
             //z-axis
             float zAxisOffset = i * m_GridLinesDistance;
             Vector3 zv1 = origin + new Vector3(zAxisOffset, 0f, 0f);
-            Vector3 zv2 = origin + new Vector3(zAxisOffset, 0f, m_GridSize - m_GridLinesDistance + 999);
+            Vector3 zv2 = origin + new Vector3(zAxisOffset, 0f, m_GridSize - m_GridLinesDistance);
 
             vertsList.AddRange(new Vector3[] { xv1, xv2, zv1, zv2 });
             indicesList.AddRange(new int[] { i*4 + 0, i*4 + 1, i*4 + 2, i*4 + 3 });

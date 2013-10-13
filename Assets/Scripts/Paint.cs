@@ -97,6 +97,11 @@ public class Paint : MonoBehaviour
 
     #region tools
 
+    void Clear()
+    {
+        FillCanvas(m_DefaultCanvasColor);
+    }
+
     void Eraser(Vector2 _Point)
     {
         SetPixel(_Point, m_DefaultCanvasColor, 5);
@@ -128,7 +133,7 @@ public class Paint : MonoBehaviour
 
     #region service methods
 
-    void SetPixel(Vector2 _Point, Color _Color, int _Radius = 1)
+    void SetPixel(Vector2 _Point, Color _Color, int _Radius = 2)
     {
         m_Buffer[Mathf.Clamp((int)_Point.x, 0, Screen.width - 1) + m_Canvas.width * Mathf.Clamp((int)_Point.y, 0, Screen.height - 1)] = _Color;
 
@@ -156,6 +161,12 @@ public class Paint : MonoBehaviour
         if (GUI.Button(new Rect(0, 0.3f * Screen.height, 0.1f * Screen.width, 0.15f * Screen.height), "Eraser"))
         {
             m_Tool = TOOLS.ERASER;
+        }
+
+        if (GUI.Button(new Rect(0, 0.45f * Screen.height, 0.1f * Screen.width, 0.15f * Screen.height), "Clear"))
+        {
+            m_Tool = TOOLS.NONE;
+            Clear();
         }
     }
 
