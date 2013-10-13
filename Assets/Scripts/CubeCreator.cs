@@ -44,6 +44,9 @@ public class CubeCreator : MonoBehaviour
 
     #region attributes
 
+    [SerializeField]
+    Material m_CubeMaterial;
+
     GameObject m_Cube;
 
     Vector2 m_P0;
@@ -59,6 +62,7 @@ public class CubeCreator : MonoBehaviour
         if (GUI.Button(new Rect(0, 0, 0.15f * Screen.width, 0.15f * Screen.height), "Mastrubate cube"))
         {
             m_CurrAction = CheckPointMap.P0;
+            Paint.instance.Tool = Paint.TOOLS.NONE;
         }
 
         if (Event.current.type == EventType.mouseUp)
@@ -118,6 +122,8 @@ public class CubeCreator : MonoBehaviour
                 Destroy(m_Cube);
 
             m_Cube = cube;
+            m_Cube.renderer.sharedMaterial = m_CubeMaterial;
+            m_Cube.renderer.sharedMaterial.renderQueue = 999;
         }
         catch (System.Exception e)
         {
