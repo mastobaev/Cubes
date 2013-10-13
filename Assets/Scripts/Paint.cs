@@ -133,7 +133,7 @@ public class Paint : MonoBehaviour
 
     #region service methods
 
-    void SetPixel(Vector2 _Point, Color _Color, int _Radius = 2)
+    void SetPixel(Vector2 _Point, Color _Color, int _Radius = 1)
     {
         m_Buffer[Mathf.Clamp((int)_Point.x, 0, Screen.width - 1) + m_Canvas.width * Mathf.Clamp((int)_Point.y, 0, Screen.height - 1)] = _Color;
 

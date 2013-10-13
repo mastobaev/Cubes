@@ -124,6 +124,8 @@ public class CubeCreator : MonoBehaviour
             m_Cube = cube;
             m_Cube.renderer.sharedMaterial = m_CubeMaterial;
             m_Cube.renderer.sharedMaterial.renderQueue = 999;
+            m_Cube.renderer.castShadows = false;
+            m_Cube.renderer.receiveShadows = false;
         }
         catch (System.Exception e)
         {
