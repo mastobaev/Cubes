@@ -8,6 +8,7 @@ public class Paint : MonoBehaviour
     #region constants
 
     const int SKETCH_RADIUS = 10;
+    const float SKETCH_RATE = 1000;
 
     #endregion
 
@@ -57,6 +58,7 @@ public class Paint : MonoBehaviour
     TOOLS m_Tool = TOOLS.SKETCH;
 
     Vector2 m_PrevPencilPos;
+    float m_PrevPencilTime = 0f;
 
     bool m_Changed = true;
 
@@ -82,7 +84,10 @@ public class Paint : MonoBehaviour
         if (Event.current.type == EventType.MouseDrag || Event.current.type == EventType.MouseDown)
         {
             if (Event.current.type == EventType.MouseDown)
+            {
                 m_PrevPencilPos = Input.mousePosition;
+                m_PrevPencilTime = Time.time;
+            }
 
             switch(m_Tool)
             {
@@ -104,6 +109,7 @@ public class Paint : MonoBehaviour
             }
 
             m_PrevPencilPos = Input.mousePosition;
+            m_PrevPencilTime = Time.time;
         }
     }
 
@@ -144,11 +150,21 @@ public class Paint : MonoBehaviour
     void Sketch(Vector2 _Point)
     {
         m_SketchBuffer[Point2Index(_Point)] = 1;
+        float deltaPos = (_Point - m_PrevPencilPos).magnitude;
+        Vector2 dir = _Point - m_PrevPencilPos;
+        dir.Normalize();
+        int stepsMax = Mathf.RoundToInt(deltaPos);
+        int stepsTime = Mathf.CeilToInt((Time.time - m_PrevPencilTime) / SKETCH_RATE);
+        int steps = (int)Mathf.Max(stepsTime, stepsMax);
+
+        for (int i = 0; i <= steps; i++)
+            m_SketchBuffer[Point2Index(_Point + i * dir)] = 1;
+
         Color c = m_Color;
         c.a = 0.3f;
 
         foreach (Vector2 point in GetRadiusSketchPoints(_Point, SKETCH_RADIUS))
-            Line(point, _Point, c, true, 2);
+            Line(point, _Point, c, true, 1);
     }
 
     void Line(Vector2 _P1, Vector2 _P2, Color _Color, bool _Smooth, int _Radius)
@@ -258,6 +274,8 @@ public class Paint : MonoBehaviour
 
         if (m_Buffer[index] == m_DefaultCanvasColor)
             m_SketchBuffer[index] = 0;
+        else
+            m_SketchBuffer[index] = 1;
 
         m_Changed = true;
     }
