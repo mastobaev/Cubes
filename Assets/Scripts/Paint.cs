@@ -16,7 +16,8 @@ public class Paint : MonoBehaviour
     {
         NONE,
         PENCIL,
-        ERASER
+        ERASER,
+        BRUSH
     }
 
     #endregion
@@ -44,7 +45,7 @@ public class Paint : MonoBehaviour
     Texture2D m_Canvas;
     Color[] m_Buffer;
 
-    TOOLS m_Tool = TOOLS.PENCIL;
+    TOOLS m_Tool = TOOLS.BRUSH;
 
     Vector2 m_PrevPencilPos;
 
@@ -70,6 +71,9 @@ public class Paint : MonoBehaviour
 
         if (Event.current.type == EventType.MouseDrag || Event.current.type == EventType.MouseDown)
         {
+            if (Event.current.type == EventType.MouseDown)
+                m_PrevPencilPos = Input.mousePosition;
+
             switch(m_Tool)
             {
                 case TOOLS.PENCIL:
@@ -79,7 +83,13 @@ public class Paint : MonoBehaviour
                 case TOOLS.ERASER:
                 Eraser(Input.mousePosition);
                 break;
+
+                case TOOLS.BRUSH:
+                Brush(Input.mousePosition);
+                break;
             }
+
+            m_PrevPencilPos = Input.mousePosition;
         }
     }
 
@@ -104,28 +114,28 @@ public class Paint : MonoBehaviour
 
     void Eraser(Vector2 _Point)
     {
-        SetPixel(_Point, m_DefaultCanvasColor, 5);
+        SetPoint(_Point, m_DefaultCanvasColor, 5);
     }
 
     void Pencil(Vector2 _Point)
     {
-        if (Event.current.type == EventType.MouseDown)
-            m_PrevPencilPos = _Point;
-
-        SetPixel(_Point, m_Color);
-        Line(_Point, m_PrevPencilPos, m_Color);
-        m_PrevPencilPos = _Point;
+        Line(_Point, m_PrevPencilPos, m_Color, false, 1);
     }
 
-    void Line(Vector2 _P1, Vector2 _P2, Color _Color)
+    void Brush(Vector2 _Point)
+    {
+        Line(_Point, m_PrevPencilPos, m_Color, true, 2);
+    }
+
+    void Line(Vector2 _P1, Vector2 _P2, Color _Color, bool _Smooth, int _Radius)
     {
         Vector2 dir = _P2 - _P1;
         dir.Normalize();
         int steps = Mathf.RoundToInt((_P2 - _P1).magnitude);
 
-        for (int i = 0; i < steps; i++)
+        for (int i = 0; i <= steps; i++)
         {
-            SetPixel(_P1 + i * dir, _Color);
+            SetPoint(_P1 + i * dir, _Color, _Radius, _Smooth);
         }
     }
 
@@ -133,21 +143,58 @@ public class Paint : MonoBehaviour
 
     #region service methods
 
-    void SetPixel(Vector2 _Point, Color _Color, int _Radius = 1)
+    int Distance(int _X, int _Y)
     {
-        m_Buffer[Mathf.Clamp((int)_Point.x, 0, Screen.width - 1) + m_Canvas.width * Mathf.Clamp((int)_Point.y, 0, Screen.height - 1)] = _Color;
+        return Mathf.CeilToInt(Mathf.Sqrt(_X * _X + _Y * _Y));
+    }
+
+    void SetPoint(Vector2 _Point, Color _Color, int _Radius = 1, bool _Smooth = false)
+    {
+        int startBlend = 2;
+        if (_Smooth)
+            _Radius = Mathf.Max(startBlend, _Radius);
 
         for (int i = 0; i < _Radius; i++)
         {
             for (int j = 0; j < _Radius; j++)
             {
-                SetPixel(_Point + new Vector2(i, j), _Color, 0);
-                SetPixel(_Point + new Vector2(-i, -j), _Color, 0);
-                SetPixel(_Point + new Vector2(-i, j), _Color, 0);
-                SetPixel(_Point + new Vector2(i, -j), _Color, 0);
+                Color c = new Color(_Color.r, _Color.g, _Color.b, _Color.a);
+                int currRadius = Distance(i, j);
+                int deltaRadius = _Radius - currRadius;
+
+                if (_Smooth && deltaRadius <= startBlend)
+                {
+                    int offset = startBlend - deltaRadius;
+                    int pow = offset * offset + 1;
+                    c.a *= Mathf.Pow(0.4f, offset * offset + 1);
+                }
+
+                SetPixel(_Point + new Vector2(i, j), c, _Smooth);
+                SetPixel(_Point + new Vector2(-i, -j), c, _Smooth);
+                SetPixel(_Point + new Vector2(-i, j), c, _Smooth);
+                SetPixel(_Point + new Vector2(i, -j), c, _Smooth);
             }
         }
 
+        m_Changed = true;
+    }
+
+    void SetPixel(Vector2 _Point, Color _Color, bool _Smooth)
+    {
+        int x = Mathf.Clamp((int)_Point.x, 0, Screen.width - 1);
+        int y = Mathf.Clamp((int)_Point.y, 0, Screen.height - 1);
+        int index = x + m_Canvas.width * y;
+        if (!_Smooth)
+        {
+            m_Buffer[index] = _Color;
+        }
+        else
+        {
+            Color prev = m_Buffer[index];
+            Color c = _Color + prev;
+            c.a = prev.a * (1f - _Color.a) + _Color.a;
+            m_Buffer[index] = c;
+        }
         m_Changed = true;
     }
 
@@ -167,6 +214,11 @@ public class Paint : MonoBehaviour
         {
             m_Tool = TOOLS.NONE;
             Clear();
+        }
+
+        if (GUI.Button(new Rect(0, 0.6f * Screen.height, 0.1f * Screen.width, 0.15f * Screen.height), "Brush"))
+        {
+            m_Tool = TOOLS.BRUSH;
         }
     }
 
