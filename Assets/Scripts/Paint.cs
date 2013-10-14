@@ -172,7 +172,7 @@ public class Paint : MonoBehaviour
     {
         Vector2 dir = _P2 - _P1;
         dir.Normalize();
-        int steps = Mathf.RoundToInt((_P2 - _P1).magnitude);
+        int steps = Mathf.Max(0, Mathf.RoundToInt((_P2 - _P1).magnitude) - 1);
 
         m_SketchBuffer[Point2Index(_P1)] = 1;
         m_SketchBuffer[Point2Index(_P2)] = 1;
