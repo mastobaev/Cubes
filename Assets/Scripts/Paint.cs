@@ -151,10 +151,11 @@ public class Paint : MonoBehaviour
     {
         m_SketchBuffer[Point2Index(_Point)] = 1;
         float deltaPos = (_Point - m_PrevPencilPos).magnitude;
+        float deltaTime = Time.time - m_PrevPencilTime;
         Vector2 dir = _Point - m_PrevPencilPos;
         dir.Normalize();
         int stepsMax = Mathf.RoundToInt(deltaPos);
-        int stepsTime = Mathf.CeilToInt((Time.time - m_PrevPencilTime) / SKETCH_RATE);
+        int stepsTime = Mathf.CeilToInt(deltaTime / SKETCH_RATE);
         int steps = (int)Mathf.Max(stepsTime, stepsMax);
 
         for (int i = 0; i <= steps; i++)
@@ -172,6 +173,9 @@ public class Paint : MonoBehaviour
         Vector2 dir = _P2 - _P1;
         dir.Normalize();
         int steps = Mathf.RoundToInt((_P2 - _P1).magnitude);
+
+        m_SketchBuffer[Point2Index(_P1)] = 1;
+        m_SketchBuffer[Point2Index(_P2)] = 1;
 
         for (int i = 0; i <= steps; i++)
             SetPoint(_P1 + i * dir, _Color, _Radius, _Smooth);
@@ -274,8 +278,6 @@ public class Paint : MonoBehaviour
 
         if (m_Buffer[index] == m_DefaultCanvasColor)
             m_SketchBuffer[index] = 0;
-        else
-            m_SketchBuffer[index] = 1;
 
         m_Changed = true;
     }
