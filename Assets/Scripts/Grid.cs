@@ -10,6 +10,12 @@ public class Grid : MonoBehaviour
     #region attributes
 
     /// <summary>
+    /// Will update grid each frame in editor mode if true
+    /// </summary>
+    [SerializeField]
+    bool m_DebugGrid = false;
+
+    /// <summary>
     /// The distance between nearby lines
     /// </summary>
     [SerializeField]
@@ -39,7 +45,7 @@ public class Grid : MonoBehaviour
     void Update()
     {
         //recreate grid mesh each frame in the editor mode
-        if (Application.isEditor)
+        if (Application.isEditor && m_DebugGrid)
             CrtGrid();
     }
 
